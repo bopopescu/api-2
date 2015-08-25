@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block main %}
+<div class="panel panel-info">
+    <div class="panel-heading">
+        平台介绍篇
+        <a href="/static/doc/help.pdf" class="btn btn-success btn-xs right">查看帮助文档</a>
+    </div>
+    <div class="panel-body no-pd-mg">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#group_0" data-toggle="tab" aria-expanded="true">平台概览</a></li>
+        <li class=""><a href="#group_1" data-toggle="tab" aria-expanded="false">权限控制</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade in active pd10" id="group_0">
+        <img src="/static/normal/img/main.png" style="height: 100%; width: 100%; display: block;">
+        </div>
+        <div class="tab-pane fade pd10" id="group_1">
+        <img src="/static/normal/img/auth.png" style="height: 100%; width: 100%; display: block;">
+        </div>
+    </div>
+    </div>
+</div>
+<div class="panel panel-info">
+    <div class="panel-heading">用户使用篇</div>
+    <div class="panel-body no-pd-mg">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#user_0" data-toggle="tab" aria-expanded="true">添加业务/管理员</a></li>
+        <li><a href="#user_1" data-toggle="tab">管理员操作</a></li>
+        <li><a href="#user_2" data-toggle="tab">添加接口</a></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade in active pd10" id="user_0">
+        1. 如需添加业务或者修改业务管理员，请向<a href="mailto:auto-test@meilishuo.com?subject=申请接口登记平台添加新业务或修改管理员&body=%0d%0a业务名(唯一值):%0d%0a%0d%0a管理员邮箱:">自动化组</a>邮件申请；<br/>
+        2. 业务管理员拥有该业务的最高权限，能够创建分组、添加用户写权限！<br/>
+        </div>
+        <div class="tab-pane fade pd10" id="user_1">
+        通过首页接口统计中的“查看分组”，可以查看/添加该业务下的分组，同能够设置用户对该业务的可写权限。
+        <img src="/static/normal/img/admin1.png" style="height: 100%; width: 100%; display: block;">
+        <img src="/static/normal/img/admin2.png" style="height: 100%; width: 100%; display: block;">
+        </div>
+        <div class="tab-pane fade pd10" id="user_2">
+        1. 管理员和可写权限用户都能够在分组中添加/编辑/删除接口。<br/>
+        2. 如果你想拥有某业务的可写权限，请向相应的业务管理员申请。<br/>
+        3. 其他只读用户不能够编辑接口，如果你设置了接口对所有人可见，则能够查看可见接口。<br/>
+        4. <font color="red">接口只能创建在分组中。</font> <br/>
+        <img src="/static/normal/img/apilist.png" style="height: 100%; width: 100%; display: block;">
+        <img src="/static/normal/img/apiadd.png" style="height: 100%; width: 100%; display: block;">
+        </div>
+    </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+    $(function(){
+      //保存数据
+      $("#saveHost").click(function() {
+        ajax_post("/edit/host", GetJsonData(), 1);
+      });
+
+      function GetJsonData() {
+        var json = {
+          "id": $("#id").val(),
+          "host": $("#host").val(),
+          "description": $("#description").val()
+        };
+        return json;
+      }
+      $("#checkHost").click(function() {
+        var url = "/data_mgr/check/host?host=" + $("#host").val()
+        ajax_get(url, 1)
+      });
+    });
+</script>
+{% endblock %}
+{% block menu_script %}
+$(function(){
+    $("ul#menu li a:eq(1)").parent().addClass("active")
+});
+{% endblock %}
+{% block main %}
+<ul class="breadcrumb">
+  <li><a href="/get/host">域名管理</a> <span class="divider"></span></li>
+  <li class="active">编辑域名</li>
+</ul>
+
+<div class="panel panel-info">
+<div class="panel-heading">基本信息</div>
+<div class="panel-body">
+    <div class="form-horizontal" role="form">
+    <input style="display:none" value="{{data.host.id}}" id="id">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>域名:</label>
+        <div class="col-xs-9 col-md-9 form-inline">
+        <input class="form-control" type="text" placeholder="唯一值,重复会覆盖" id="host" value="{{data.host.host}}">
+        <a class="btn btn-info" href="#Dialog" data-toggle="modal" id="checkHost">检测重复</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+        <textarea class="form-control"  id="description" style="height: 130px">{{data.host.description}}</textarea>
+        </div>
+    </div>
+    </div>
+</div>
+</div>
+<div class="mg10">
+    <a href="#Dialog" role="button" class="btn btn-primary" data-toggle="modal" id="saveHost">保存</a>
+</div>
+{% endblock %}

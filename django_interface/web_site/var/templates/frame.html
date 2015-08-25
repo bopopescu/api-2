@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block script %}
+<script type="text/javascript">
+function search(){
+  var q = $("#search_input").val()
+  if(q != ""){
+    var url =  "/get/interface?q=" + q
+    window.parent.frames[1].location.href = url
+  }
+}
+
+document.onkeydown = function(event_e){
+    if(window.event)
+     event_e = window.event;
+     var int_keycode = event_e.charCode||event_e.keyCode||event_e.which ;
+     if(int_keycode ==13){
+      search()
+    }
+}
+
+function addActive(index){
+  $("ul#menu li a").each(function(){
+    $(this).parent().removeClass("active")
+  });
+  $(index).parent().addClass("active")
+}
+
+</script>
+{% endblock %}
+{% block main %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">接口管理平台</a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="navbar-collapse collapse" id="bs-example-navbar-collapse-1" aria-expanded="false" style="height: 1px;">
+      <ul class="nav navbar-nav" id="menu">
+        <li class="active"><a href="/"><i class="glyphicon glyphicon-home"></i> 首页</a></li>
+        <li><a href="/self/bench" target="main_frame" onclick="addActive(this)"><i class="glyphicon glyphicon-glass"></i> 个人工作台</a></li>
+        <li><a href="/get/host" target="main_frame" onclick="addActive(this)"><i class="glyphicon glyphicon-globe"></i> 域名管理</a></li>
+        <li><a href="/data/structure" target="main_frame" onclick="addActive(this)"><i class="glyphicon glyphicon-bookmark"></i> 数据结构</a></li>
+        <li><a href="/help" target="main_frame" onclick="addActive(this)"><i class="glyphicon glyphicon-header"></i> 帮助</a></li>
+        <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-star"></i> 其他平台<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+        <li><a href="http://casemaster.meiliworks.com/" target="_blank">接口测试平台</a></li>
+        <li class="divider"></li>
+        <li><a href="http://agile.meiliworks.com/" target="_blank">测试服务化平台</a></li>
+        <li class="divider"></li>
+        <li><a href="http://beat.meiliworks.com/" target="_blank">Url监控平台</a></li>
+        <li class="divider"></li>
+        <li><a href="http://mpp.meiliworks.com/" target="_blank">性能测试平台</a></li>
+        </ul>
+        </li>
+      </ul>
+      <div class="navbar-form navbar-left" role="search">
+          <input type="text" class="form-control" placeholder="接口名/Url路径/负责人" id="search_input">
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+        <a class="app" target="_blank" href="http://speed.meilishuo.com/user">
+        <i class="glyphicon glyphicon-user"></i> {{request.session.django_name}}
+        </a>
+        </li>
+        <li>
+            <a class="app" href="/user/logout"><i class="glyphicon glyphicon-off"></i> 退出</a>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+<!--Main-->
+<div class="container-fluid mg2">
+<div class="row-fluid">
+<div class="col-xs-2 col-md-2" style="width: 20%;">
+<iframe class="frame" src="/left/menu" frameborder="0"></iframe>
+</div>
+<div class="col-xs-10 col-md-10" style="width: 80%;">
+<iframe class="frame" src="/main" name="main_frame" frameborder="0"></iframe>
+</div>
+</div>
+</div>
+{% endblock %}
+
+

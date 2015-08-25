@@ -1,0 +1,710 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+    $(function(){
+      //应用基本输入参数
+      $("#inputSure").click(function(){
+        var inputName = $("#inputName").val().replace(/"/g,"'")
+        var inputIndex = $("#inputIndex").val().replace(/"/g,"'")
+        var inputType = $("#inputType").val().replace(/"/g,"'")
+        var inputMust = $("#inputMust").val().replace(/"/g,"'")
+        var inputSample = $("#inputSample").val().replace(/"/g,"'")
+        var inputDesc = $("#inputDesc").val().replace(/"/g,"'")
+
+        var json = inputName + "::" + inputType + "::" + inputMust + "::" + inputSample + "::" + inputDesc
+        inputType = $("#inputType").find("option:selected").text();
+        inputMust = $("#inputMust").find("option:selected").text();
+        var html = "<tr class='parent'><td>"
+        html += inputName + "</td><td>"
+        html += inputType + "</td><td>"
+        html += inputMust + "</td><td>"
+        html += inputSample + "</td><td>"
+        html += inputDesc + "</td><td>"
+        html += '<input style="display:none;" class="inputJson" value="' + json + '"/>'
+        html += '<a href="#inputParam" data-toggle="modal" onclick="inputData(this)">编辑</a> | <a onclick=' + "$(this).parents('.parent').remove()" + ">删除</a></td></tr>"
+        if (inputIndex){
+          str = "tr:eq(" + inputIndex + ")"
+          $("#inputTable").find(str).replaceWith(html)
+        }else{
+          $(html).appendTo("#inputTable");
+        }
+
+      });
+
+      //应用级别输出参数
+      $("#outputSure").click(function(){
+        var outputIndex = $("#outputIndex").val().replace(/"/g,"'")
+        var outputName = $("#outputName").val().replace(/"/g,"'")
+        var outputType = $("#outputType").val().replace(/"/g,"'")
+        var outputSample = $("#outputSample").val().replace(/"/g,"'")
+        var outputDesc = $("#outputDesc").val().replace(/"/g,"'")
+
+        var json = outputName + "::" + outputType + "::" + outputSample + "::" + outputDesc
+        outputType = $("#outputType").find("option:selected").text();
+        var html = "<tr class='parent'><td>"
+        html += outputName + "</td><td>"
+        html += outputType + "</td><td>"
+        html += outputSample + "</td><td>"
+        html += outputDesc + "</td><td>"
+        html += '<input style="display:none;" class="outputJson" value="' + json + '"/>'
+        html += '<a href="#outputParam" data-toggle="modal" onclick="outputData(this)">编辑</a> | <a onclick=' + "$(this).parents('.parent').remove()" + ">删除</a></td></tr>"
+
+        if (outputIndex){
+          str = "tr:eq(" + outputIndex + ")"
+          $("#outputTable").find(str).replaceWith(html)
+        }else{
+          $(html).appendTo("#outputTable");
+        }
+      });
+
+      //错误码
+      $("#errorSure").click(function(){
+        var errorIndex = $("#errorIndex").val().replace(/"/g,"'")
+        var errorCode = $("#errorCode").val().replace(/"/g,"'")
+        var errorSolve = $("#errorSolve").val().replace(/"/g,"'")
+        var errorDesc = $("#errorDesc").val().replace(/"/g,"'")
+
+        var json = errorCode + "::" + errorSolve + "::" + errorDesc
+        var html = "<tr class='parent'><td>"
+        html += errorCode + "</td><td>"
+        html += errorSolve + "</td><td>"
+        html += errorDesc + "</td><td>"
+        html += '<input style="display:none;" class="errorJson" value="' + json + '"/>'
+        html += '<a href="#errorParam" data-toggle="modal" onclick="errorData(this)">编辑</a> | <a onclick=' + "$(this).parents('.parent').remove()" + ">删除</a></td></tr>"
+        if (errorIndex){
+          str = "tr:eq(" + errorIndex + ")"
+          $("#errorTable").find(str).replaceWith(html)
+        }else{
+          $(html).appendTo("#errorTable");
+        }
+      });
+      var work_id = {% if data.api.work_id %}"{{data.api.work_id}}"{%else%}"{{data.work_id}}"{%endif%}
+      var group_id = {% if data.api.group_id %}"{{data.api.group_id}}"{%else%}"{{data.group_id}}"{%endif%}
+      //保存数据
+      $("#saveInterface").click(function() {
+        ajax_post("/add/interface", GetJsonData(), 1);
+      });
+
+      function GetJsonData() {
+        var base = {
+          "id": $("#id").val(),
+          "name": $("#name").val(),
+          "url": $("#url").val(),
+          "url_param": $("#url_param").val(),
+          "group_id": $("#group_id").val(),
+          "work_id": $("#work_id").val(),
+          "request_type": $("#request_type").val(),
+          "status": $("#status").val(),
+          "is_show": $("#is_show").val(),
+          "version": $("#version").val(),
+          "description": $("#description").val(),
+        }
+        var inputJson = []
+        $(".inputJson").each(function(i, o){
+          inputJson[i] = $(o).val();
+        });
+
+        var outputJson = []
+        $(".outputJson").each(function(i, o){
+          outputJson[i] = $(o).val();
+        });
+
+        var errorJson = []
+        $(".errorJson").each(function(i, o){
+          errorJson[i] = $(o).val();
+        });
+        var ret_param = $("#ret_param").val()
+        var options = $("#options").val()
+        var tag_id_list = []
+        $("#api_tag option:selected").each(function(i,o){
+            tag_id_list[i] = $(o).val();
+        });
+        var json = {
+          "base": base,
+          "inputJson": inputJson,
+          "outputJson": outputJson,
+          "errorJson": errorJson,
+          "ret_param": ret_param,
+          "options": options,
+          "tag_id_list":tag_id_list,
+        };
+        return json;
+      }
+      $("#work_id").change(function(){
+        url = "/data_mgr/filter/group?work_id=" + $("#work_id").val()
+        $.get(url,
+          function(ret){
+            $("#group_id").empty()
+            if (ret.status == "success"){
+              $.each(ret.data, function(i,val){
+                value = "<option value='" + val.id + "'>" + val.name + "</option>"
+                $("#group_id").append(value)
+              });
+            }else{
+              alert("切换业务失败，请稍候重试！")
+            }
+        });
+      });
+      $("#save_tag").click(function(){
+        var tag = {
+          name:$("#tag_name").val(),
+          description:$("#tag_desc").val()
+        }
+        url="/data_mgr/save/api_tag"
+        post(url, tag)
+      })
+      var arr = [{%for i in data.api.api_tag_list%}{{i.id}},{%endfor%}]
+      for(var i=0;i<arr.length;i++){
+        $('#api_tag').multiselect('select', arr[i]);
+      }
+      //设置初始值
+      {% if data.api.request_type %}
+      $("#request_type").val("{{data.api.request_type}}")
+      {% endif %}
+      {% if data.api.status != None %}
+      $("#status").val("{{data.api.status}}")
+      {% endif %}
+      {% if data.api.url != None %}
+      $("#url").val("{{data.api.url}}")
+      {% endif %}
+      $("#work_id").val(work_id)
+      if(group_id){
+        $("#group_id").val(group_id)
+      }
+      {% if data.api.is_show != None %}
+      $("#is_show").val("{{data.api.is_show}}")
+      {% endif %}
+      $('#url').multiselect({
+        enableFiltering: true,
+        filterPlaceholder: '输入搜索'
+      });
+      $('#work_id').multiselect({
+        enableFiltering: true,
+        filterPlaceholder: '输入搜索'
+      });
+    });
+    function cleanInput(){
+      $("#inputIndex").val("")
+      $("#inputName").val("")
+      $("#inputSample").val("")
+      $("#inputDesc").val("")
+    }
+    function inputData(data){
+      var v = $(data).parent().children("input").val()
+      var index = $(data).parent().parent().index()
+      $("#inputIndex").val(index)
+      list = v.split("::")
+      $("#inputName").val(list[0])
+      $("#inputType").val(list[1])
+      $("#inputMust").val(list[2])
+      $("#inputSample").val(list[3])
+      $("#inputDesc").val(list[4])
+    }
+    function cleanOutput(){
+      $("#outputIndex").val("")
+      $("#outputName").val("")
+      $("#outputSample").val("")
+      $("#outputDesc").val("")
+    }
+    function outputData(data){
+      var v = $(data).parent().children("input").val()
+      var index = $(data).parent().parent().index()
+      $("#outputIndex").val(index)
+      list = v.split("::")
+      $("#outputName").val(list[0])
+      $("#outputType").val(list[1])
+      $("#outputSample").val(list[2])
+      $("#outputDesc").val(list[3])
+    }
+    function cleanError(){
+      $("#errorIndex").val("")
+      $("#errorCode").val("")
+      $("#errorSolve").val("")
+      $("#errorDesc").val("")
+    }
+    function errorData(data){
+      var v = $(data).parent().children("input").val()
+      var index = $(data).parent().parent().index()
+      $("#errorIndex").val(index)
+      list = v.split("::")
+      $("#errorCode").val(list[0])
+      $("#errorSolve").val(list[1])
+      $("#errorDesc").val(list[2])
+    }
+
+    window.onbeforeunload = function() {
+      var msg = "您还未保存接口，离开会丢失修改的接口信息！";
+      var is_saved = $("#is_saved").val()
+      if(is_saved == "no"){
+        return msg;
+      }
+    }
+</script>
+{% endblock %}
+{% block main %}
+{% if data.auth.super or data.auth.admin or data.auth.write %}
+<ul class="breadcrumb">
+  <li><a href="/get/interface?work_id={{request.GET.work_id}}&group_id={{request.GET.group_id}}">接口列表</a> <span class="divider"></span></li>
+  <li class="active">添加接口</li>
+</ul>
+{% else %}
+<div class="alert alert-warning pd10">
+<button type="button" class="close" data-dismiss="alert">×</button>
+您没有本业务的写权限，只能查看接口信息！
+</div>
+{% endif %}
+{% if data.auth.super or data.auth.admin or data.auth.write or data.api.is_show %}
+<!-- 基本信息 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">基本信息</div>
+<div class="panel-body">
+    <div class="form-horizontal" role="form">
+    <div class="row">
+      <div class="col-xs-6 col-md-6">
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>接口名称:</label>
+            <div class="col-xs-9 col-md-9">
+            <input style="display:none" value="{{data.api.id}}" id="id">
+            <input class="col-xs-10 col-sm-10 form-control" type="text" id="name" value="{{data.api.name}}" placeholder="简要介绍接口">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>主站域名:</label>
+            <div class="col-xs-9 col-md-9 form-inline">
+            <select class="form-control col-xs-9 col-md-9" id="url" style="width:85%">
+            <option value="0">请选择</option>
+            {% for s in data.urlHost%}
+            <option value="{{s.id}}">{{s.host}}</option>
+            {% endfor %}
+            </select>
+            <a class="btn" href="/get/host"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>Url路径:</label>
+            <div class="col-xs-9 col-md-9">
+            <input class="col-xs-10 col-sm-10 form-control" type="text" id="url_param" value="{{data.api.url_param}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>请求方法:</label>
+            <div class="col-xs-9 col-md-9">
+            <select class="col-xs-10 col-sm-10 form-control" id="request_type">
+            <option value=1>GET</option>
+            <option value=2>POST</option>
+            <!--option value=3>PUT</option>
+            <option value=4>DELETE</option-->
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>是否发布:</label>
+            <div class="col-xs-9 col-md-9">
+            <select class="col-xs-10 col-sm-10 form-control" id="status">
+            <option value=1>发布</option>
+            <option value=0>未发布</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>是否可见:</label>
+            <div class="col-xs-9 col-md-9">
+            <select class="col-xs-10 col-md-10 form-control" id="is_show">
+                <option value=1>所有人可见</option>
+                <option value=0>仅本业务人员可见</option>
+            </select>
+            </div>
+        </div>
+      </div>
+      <div class="col-xs-6 col-md-6">
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>所属业务:</label>
+            <div class="col-xs-9 col-md-9">
+            <select class="col-xs-10 col-sm-10 form-control" id="work_id" {% if not data.api.id %}readonly disabled {%endif%}>
+            {% for s in data.work%}
+            <option value="{{s.id}}">{{s.name}}</option>
+            {% endfor %}
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>所属分组:</label>
+            <div class="col-xs-9 col-md-9 form-inline">
+            <select class="col-xs-9 col-sm-9 form-control" id="group_id" style="width:85%">
+            {% for s in data.group%}
+            <option value="{{s.id}}">{{s.name}}</option>
+            {% endfor %}
+            </select>
+            <a class="btn" href="/get/group?work_id={{request.GET.work_id}}"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right">接口版本:</label>
+            <div class="col-xs-9 col-md-9">
+            <input class="col-xs-10 col-sm-10 form-control" type="text" id="version" value="{{data.api.version}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right">接口标签:</label>
+            <div class="col-xs-9 col-md-9 form-inline">
+            <select class="form-control col-xs-9 col-md-9" id="api_tag" multiple="multiple" style="width: 400px;">
+            {%for d in data.api_tag%}
+            <option value={{d.id}}>{{d.name}}</option>
+            {%endfor%}
+            </select>
+            <a class="btn" data-toggle="modal" data-target="#show_api_tag"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right">接口描述:</label>
+            <div class="col-xs-9 col-md-9">
+            <textarea  class="form-control" id="description" placeholder="详情介绍接口" style="height: 83px; width: 100%;">{{data.api.description}}</textarea>
+            </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+</div>
+
+<!-- 输入参数 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+输入参数
+<a href="#inputParam" role="button" class="btn btn-xs btn-info right" data-toggle="modal" onclick="cleanInput()">添加参数</a>
+</div>
+<!-- 列表 -->
+<table class="table table-bordered table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>类型</th>
+      <th>是否必须</th>
+      <th style="width:15%">示例值</th>
+      <th style="width:50%">描述</th>
+      <th style="width:80px">操作</th>
+    </tr>
+  </thead>
+  <tbody id="inputTable">
+  {% if data.api.in_param %}
+  {% for d in data.api.in_param %}
+  <tr class="parent">
+      <td>{{d.name}}</td>
+      <td>
+          {% for s in data.structure%}
+          {% if d.type == s.id %}{{s.name}}{%endif%}
+          {% endfor %}
+      </td>
+      <td>{% if d.must == 1 %}是{% else %}否{% endif %}</td>
+      <td>{{d.sample}}</td>
+      <td>{{d.desc}}</td>
+      <td>
+          <input style="display:none" class="inputJson" value="{{d.name}}::{{d.type}}::{{d.must}}::{{d.sample}}::{{d.desc}}">
+          <a href="#inputParam" data-toggle="modal" onclick="inputData(this)">编辑</a> |
+          <a onclick="$(this).parents('.parent').remove()">删除</a>
+      </td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+  </tbody>
+</table>
+</div>
+
+<!-- 输入参数对话框 -->
+<div id="inputParam" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">编辑数据</h4>
+    </div>
+    <div class="modal-body">
+
+    <div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>名称:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="inputName">
+            <input style="display:none"  id="inputIndex">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>类型:</label>
+        <div class="col-xs-5 col-md-5 form-inline">
+            <select class="form-control" id="inputType">
+            {% for s in data.structure%}
+            <option value={{s.id}}>{{s.name}}</option>
+            {% endfor %}
+            </select>
+            <a href="/data/structure" class="btn btn-info">添加数据结构</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>是否必须:</label>
+        <div class="col-xs-5 col-md-5">
+            <select class="form-control" id="inputMust">
+            <option value=1>是</option>
+            <option value=2>否</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>示例:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="inputSample">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+            <textarea class="form-control" id="inputDesc" style="height: 130px"></textarea>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal-footer">
+    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="inputSure">确定</button>
+    <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">取消</button>
+    </div>
+    </div>
+    </div>
+</div>
+
+<!-- 使用例子 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+使用例子
+</div>
+<div class="panel-body no-pd-mg no-pd-mg">
+<div class="accordion-inner">
+<textarea class="form-control" id="options" style="width: 100%;height: 150px;">{{data.api.options}}</textarea>
+</div>
+</div>
+</div>
+
+<!-- 输出参数示例 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+输出参数示例
+</div>
+<div class="panel-body no-pd-mg">
+<div class="accordion-inner">
+<textarea class="form-control" id="ret_param" style="width: 100%;height: 150px;">{{data.api.ret_param}}</textarea>
+</div>
+</div>
+</div>
+
+<!-- 输出参数说明 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+输出参数说明(选择性添加)
+<a href="#outputParam" role="button" class="btn btn-xs btn-info right" data-toggle="modal" onclick="cleanOutput()">添加参数</a>
+</div>
+<!-- 列表 -->
+<table class="table table-bordered table-striped table-condensed">
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>类型</th>
+      <th style="width:15%">示例值</th>
+      <th style="width:50%">描述</th>
+      <th style="width:80px">操作</th>
+    </tr>
+  </thead>
+  <tbody id="outputTable">
+  {% if data.api.out_param %}
+  {% for d in data.api.out_param %}
+  <tr class="parent">
+      <td>{{d.name}}</td>
+      <td>
+          {% for s in data.structure%}
+          {% if d.type == s.id %}{{s.name}}{%endif%}
+          {% endfor %}
+      </td>
+      <td>{{d.sample}}</td>
+      <td>{{d.desc}}</td>
+      <td>
+          <input style="display:none" class="outputJson" value="{{d.name}}::{{d.type}}::{{d.sample}}::{{d.desc}}">
+          <a href="#outputParam" data-toggle="modal" onclick="outputData(this)">编辑</a> |
+          <a onclick="$(this).parents('.parent').remove()">删除</a>
+      </td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+  </tbody>
+</table>
+</div>
+
+<!-- 输出参数说明对话框 -->
+<div id="outputParam" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">编辑数据</h4>
+    </div>
+    <div class="modal-body">
+
+    <div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>名称:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="outputName" placeholder="唯一值,重复会覆盖">
+            <input style="display:none" id="outputIndex">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>类型:</label>
+        <div class="col-xs-5 col-md-5 form-inline">
+            <select class="form-control" id="outputType">
+            {% for s in data.structure%}
+            <option value={{s.id}}>{{s.name}}</option>
+            {% endfor %}
+            </select>
+            <a href="/data/structure" class="btn btn-info">添加数据结构</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>示例:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="outputSample">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+            <textarea class="form-control" id="outputDesc" style="height: 130px"></textarea>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal-footer">
+    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="outputSure">确定</button>
+    <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">取消</button>
+    </div>
+    </div>
+    </div>
+</div>
+
+<!-- 错误码 -->
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+错误码
+<a href="#errorParam" role="button" class="btn btn-xs btn-info right" data-toggle="modal" onclick="cleanError()">添加参数</a>
+</div>
+<!-- 列表 -->
+<table class="table table-bordered table-striped table-condensed">
+<thead>
+    <tr>
+      <th>错误</th>
+      <th style="width:15%">解决方案</th>
+      <th style="width:50%">描述</th>
+      <th style="width:80px">操作</th>
+    </tr>
+  </thead>
+  <tbody id="errorTable">
+  {% if data.api.error_param %}
+  {% for d in data.api.error_param %}
+  <tr class="parent">
+      <td>{{d.code}}</td>
+      <td>{{d.solve}}</td>
+      <td>{{d.desc}}</td>
+      <td>
+          <input style="display:none" class="errorJson" value="{{d.code}}::{{d.solve}}::{{d.desc}}">
+          <a href="#errorParam" data-toggle="modal" onclick="errorData(this)">编辑</a> |
+          <a onclick="$(this).parents('.parent').remove()">删除</a>
+      </td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+</tbody>
+</table>
+</div>
+
+<!-- 错误码对话框 -->
+<div id="errorParam" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">编辑数据</h4>
+    </div>
+    <div class="modal-body">
+
+    <div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>错误码:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="errorCode" placeholder="唯一值,重复会覆盖">
+            <input style="display:none" id="errorIndex">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>解决方案:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="errorSolve">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+            <textarea class="form-control" id="errorDesc" style="height: 130px"></textarea>
+        </div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal-footer">
+    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="errorSure">确定</button>
+    <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">取消</button>
+    </div>
+    </div>
+    </div>
+</div>
+{% if data.auth.super or data.auth.admin or data.auth.write %}
+<div class="mg10">
+<a href="#Dialog" role="button" class="btn btn-primary" data-toggle="modal" id="saveInterface">保存接口</a>
+</div>
+{% endif %}
+
+<!-- Modal -->
+<div class="modal fade" id="show_api_tag" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div class="form-horizontal">
+            <div class="form-group">
+            <label class="col-xs-4 col-md-4 control-label"><s>*</s>标签名:</label>
+            <div class="col-xs-8 col-md-8">
+                <input class="form-control" type="text" id="tag_name" placeholder="唯一值，最多8个字符" maxlength="8">
+            </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-4 col-md-4 control-label">描述:</label>
+                <div class="col-xs-8 col-md-8">
+                    <input class="form-control" type="text" id="tag_desc">
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-success btn-sm" data-dismiss="modal" id="save_tag">保存</a>
+        <a class="btn btn-danger btn-sm" data-dismiss="modal">取消</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+<input id="is_saved" value="no" style="display:none">
+<script type="text/javascript">
+    $(function(){
+      $("#saveInterface").click(function(){
+        $("#is_saved").val("yes");
+      });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>接口管理平台</title>
+    <meta name="author" content="刘礼 <liliurd@meilishuo.com>">
+    <link rel="shortcut icon" href="/static/normal/img/favicon.ico"/>
+
+    <script type="text/javascript" src="/static/normal/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/normal/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/normal/bootstrap/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript" src="/static/normal/bootstrap/js/bootstrap-treeview.js"></script>
+    <script type="text/javascript" src="/static/normal/bootstrap/js/bootstrap-multiselect.js"></script>
+    <script type="text/javascript" src="/static/normal/js/normal.js"></script>
+    <link href="/static/normal/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="/static/normal/bootstrap/css/bootstrap-datetimepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="/static/normal/bootstrap/css/bootstrap-multiselect.css" rel="stylesheet" type="text/css" />
+    <link href="/static/normal/css/main.css" rel="stylesheet" type="text/css" />
+
+    <!--[if lt IE 9]>
+      <script src="/static/normal/bootstrap/js/html5shiv.min.js"></script>
+      <script src="/static/normal/bootstrap/js/respond.min.js"></script>
+    <![endif]-->
+    {% block script %}{% endblock %}
+</head>
+<body>
+{% block main %}
+{% endblock %}
+<!-- 对话框 -->
+<div id="Dialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title" id="myModalLabel">操作结果</h4>
+    </div>
+    <div class="modal-body">
+    <h4 id="DialogMain"></h4>
+    </div>
+    <div class="modal-footer">
+    <button type="button" class="btn btn-white btn-primary" data-dismiss="modal" id="DialogSure">确定</button>
+    <a class="btn btn-info" id="Refresh">刷新</a>
+    </div>
+    </div>
+    </div>
+</div>
+<script type="text/javascript">
+$(".pick_date").datetimepicker({format: 'yyyy-mm-dd', minView: 'month', autoclose:true});
+$("[data-toggle='tooltip']").tooltip()
+$("select[multiple=multiple]").multiselect({
+    nonSelectedText: '请选择',
+    selectAllText: '全选',
+    includeSelectAllOption: true,
+    enableFiltering: true,
+    filterPlaceholder: '输入搜索'
+});
+</script>
+</body>
+</html>
+

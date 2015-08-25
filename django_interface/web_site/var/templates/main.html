@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block script %}
+
+{% endblock %}
+
+{% block main %}
+<div class="col-xs-12 col-md-12">
+{% if not data.auth.super %}
+<div class="alert alert-danger">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  如需添加业务或者修改业务管理员，请向<a href="mailto:auto-test@meilishuo.com?subject=申请接口登记平台添加新业务或修改管理员&body=%0d%0a业务名(唯一值):%0d%0a%0d%0a管理员邮箱:">自动化组</a>邮件申请；
+  如需帮助或有任何建议请联系<a href="mailto:liliurd@meilishuo.com">刘礼</a>。
+</div>
+{% endif %}
+</div>
+<div class="col-xs-7 col-md-7">
+<div class="panel panel-info">
+<div class="panel-heading">接口统计
+<div class="right">{% if data.auth.super %}<a href="/add/work" class="btn btn-primary btn-xs">添加业务</a>{%endif%}
+</div>
+</div>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+        <th>业务名</th>
+        <th>分组数</th>
+        <th>接口数</th>
+        <th>本月新增数</th>
+        <th>本周新增数</th>
+        <th style="width:100px">操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for k in data.work %}
+    <tr>
+        <td><a href="/get/group?work_id={{k.id}}">{{k.name}}</a></td>
+        <td><a href="/get/group?work_id={{k.id}}" data-toggle="tooltip" data-placement="right" title="猛戳我"><span class="badge badge-info">{{k.group_num}}</span></a></td>
+        <td><a href="/get/interface?work_id={{k.id}}" data-toggle="tooltip" data-placement="right" title="猛戳我"><span class="badge badge-info">{{k.api_num}}</span></a></td>
+        <td><a href="/get/interface?work_id={{k.id}}&days=30" data-toggle="tooltip" data-placement="right" title="猛戳我"><span class="badge badge-info">{{k.api_month}}</span></a></td>
+        <td><a href="/get/interface?work_id={{k.id}}&days=7" data-toggle="tooltip" data-placement="right" title="猛戳我"><span class="badge badge-info">{{k.api_week}}</span></a></td>
+
+        <td>
+            {% if data.auth.super %}
+            <div class="btn-group">
+            <a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">业务管理<span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="/get/group?work_id={{k.id}}">查看分组</a></li>
+              <li class="divider"></li>
+              <li><a href="/get/user?work_id={{k.id}}">设置管理员</a></li>
+              <li><a href="/add/work?id={{k.id}}">编辑业务</a></li>
+              <li>
+                <a onclick="ajax_get('/data_mgr/delete/work?id={{k.id}}')" href="#Dialog" data-toggle="modal">
+                    删除业务
+                </a>
+              </li>
+            </ul>
+            </div>
+            {%else%}
+            <a href="/get/group?work_id={{k.id}}">查看分组</a>
+            {%endif%}
+        </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+<div class="col-xs-5 col-md-5 ">
+<div class="panel panel-info">
+<div class="panel-heading">接口标签</div>
+<div class="panel-body pd10">
+    {%for d in data.api_tag%}
+    <a href="/query/api?tag_id={{d.id}}"><span class="badge badge-tag api_tag">{{d.name}} <span class="badge badge-default">{{d.api_num}}</span></span></a>
+    {%endfor%}
+
+</div>
+</div>
+
+<div class="panel panel-info">
+<div class="panel-heading">平台统计</div>
+<div class="panel-body no-pd-mg">
+<table class="table table-hover table-striped table-condensed no-pd-mg">
+  <tbody>
+    <tr>
+        <td>平台接口总数:</td>
+        <td><span class="badge badge-tag">{{data.user.api_total}}</span></td>
+    </tr>
+    <tr>
+        <td>平台用户总数:</td>
+        <td><span class="badge badge-tag">{{data.user.total}}</span></td>
+    </tr>
+    <tr>
+        <td>一天用户活跃数:</td>
+        <td><span class="badge badge-tag">{{data.user.day}}</span></td>
+    </tr>
+    <tr>
+        <td>一周用户活跃数:</td>
+        <td><span class="badge badge-tag">{{data.user.week}}</span></td>
+    </tr>
+    <tr>
+        <td>一月用户活跃数:</td>
+        <td><span class="badge badge-tag">{{data.user.month}}</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+<div class="panel panel-info">
+<div class="panel-heading">荣誉殿堂</div>
+<div class="panel-body no-pd-mg">
+<table class="table table-hover table-striped table-condensed no-pd-mg">
+  <thead>
+    <tr>
+        <th>勋章</th>
+        <th>姓名</th>
+        <th>接口数</th>
+    </tr>
+  </thead>
+  <tbody>
+    {%  for key, value in data.user_ranking.items %}
+    <tr>
+        <td>
+            {%if key == 0%}
+            <img src="/static/normal/img/gold_2.png" data-toggle="tooltip" data-placement="right" title="状元">
+            {%elif key == 1%}
+            <img src="/static/normal/img/silver_2.png" data-toggle="tooltip" data-placement="right" title="榜眼">
+            {%elif key == 2%}
+            <img src="/static/normal/img/bronze_2.png" data-toggle="tooltip" data-placement="right" title="探花">
+            {%else%}
+            {%endif%}
+        </td>
+        <td><a href="mailto:{{value.user}}">{{value.name}}</a></td>
+        <td><a href="/get/interface?q={{value.user}}">{{value.count}}</a></td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+</div>
+</div>
+</div>
+{% endblock %}

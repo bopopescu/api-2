@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+    $(function() {
+
+        var defaultData = [{% for m in data.menu %}
+          {
+            text:'{{m.name}}',
+            href:'/get/interface?work_id={{m.id}}',
+            tags: ['{{m.api_num}}'],
+            nodes: [{% for g in m.group %}
+              {
+                text:'{{g.name}}',
+                href:'/get/interface?work_id={{m.id}}&group_id={{g.id}}',
+                icon:'glyphicon glyphicon-file',
+                tags: ['{{g.api_num}}'],
+              },{% endfor %}
+            ]
+          },{% endfor %}
+        ]
+
+
+        $('#menu_treeview').treeview({
+          color: "#428bca",
+          expandIcon: 'glyphicon glyphicon-plus',
+          collapseIcon: 'glyphicon glyphicon-minus',
+          showTags: true,
+          enableLinks: true,
+          data: defaultData
+        });
+
+    });
+    </script>
+{% endblock %}
+{% block main %}
+<div id="menu_treeview"></div>
+{% endblock %}

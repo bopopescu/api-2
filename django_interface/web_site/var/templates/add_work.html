@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+function GetJsonData() {
+    var json = {
+      "id": $("#id").val(),
+      "name": $("#name").val(),
+      "is_show": $("#is_show").val(),
+      "description": $("#description").val(),
+    }
+    return json;
+}
+$(function () {
+    //保存数据
+    $("#saveWork").click(function() {
+    ajax_post("/add/work", GetJsonData(), 1);
+    });
+
+    $("#checkName").click(function() {
+        var url =  "/data_mgr/check/work?name=" + $("#name").val()
+        ajax_get(url, 1)
+    });
+
+    {% if data.work.is_show != None %}
+    $("#is_show").val("{{data.work.is_show}}")
+    {% endif %}
+});
+</script>
+{% endblock %}
+{% block main %}
+<ul class="breadcrumb">
+  <li><a href="/main">主页</a> <span class="divider"></span></li>
+  <li class="active">添加业务</li>
+</ul>
+{% if data.auth.super %}
+<div class="mg-bt10">
+    <a href="#Dialog" role="button" class="btn btn-primary" data-toggle="modal" id="saveWork">保存业务</a>
+</div>
+{% else %}
+<div class="alert alert-error">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  如需添加业务或者修改业务管理员，请向<a href="mailto:auto-test@meilishuo.com?subject=申请接口登记平台添加新业务或修改管理员&body=%0d%0a业务名(唯一值):%0d%0a%0d%0a管理员邮箱:">自动化组</a>邮件申请；
+  如需帮助或有任何建议请联系<a href="http://speed.meilishuo.com/address/addresslist?search=liliurd" target="_blank">刘礼</a>。
+</div>
+{% endif %}
+
+<div class="panel panel-info">
+<div class="panel-heading">基本信息</div>
+<div class="panel-body">
+    <div class="form-horizontal" role="form">
+        <input style="display:none" value="{{data.work.id}}" id="id">
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="name"><s>*</s>名称:</label>
+            <div class="col-xs-5 col-md-5 form-inline">
+            <input class="form-control" type="text" id="name" value="{{data.work.name}}" {% if data.work.id %}disabled{% endif %}>
+            <a href="#Dialog" class="btn" data-toggle="modal" id="checkName">检测重复</a>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="is_show"><s>*</s>是否显示:</label>
+            <div class="col-xs-5 col-md-5">
+            <select class="form-control" id="is_show">
+            <option value=1>显示</option>
+            <option value=0>不显示</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="description">描述:</label>
+            <div class="col-xs-5 col-md-5">
+            <textarea class="form-control"  id="description" style="height: 130px">{{data.work.description}}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

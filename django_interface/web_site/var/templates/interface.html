@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+$(function () {
+    {% if data.in_q %}
+    $("#in_value").val("{{data.in_q}}")
+    {% endif %}
+
+    $("#autoAddSure").click(function() {
+      json_data={ url:$("#autoUrl").val(), group_id:"{{data.group_id}}", work_id:"{{data.work_id}}"}
+      $("#modal-footer").hide()
+      $("#autoAddRef").show()
+      $("#autoAddRef").attr("href", window.location.href)
+      $.ajax({
+        type: "POST",
+        url: "/data_mgr/add/url/api",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(json_data),
+        dataType: "json",
+        success: function (ret) {
+          if (ret.data.code == 0){
+            if(ret.data.info){
+              $("#modal-body").html("<font color='green'>" + ret.data.info + "</font>")
+            }else{
+              $("#modal-body").html("<font color='green'>操作成功，刷新页面可看效果！！！！</font>")
+            }
+            setTimeout("location.reload();", 2000);
+          }else{
+            if(ret.data.info){
+              $("#modal-body").html("<pre><font color='red'>" + ret.data.info + "</font></pre>")
+            }else{
+              $("#modal-body").html("<pre><font color='red'>操作失败！！！</font></pre>")
+            }
+          }
+        },
+        error: function (data) {
+          $("#modal-body").html("<font color='red'>" + "未知错误请重试，或者联系刘礼!" + "</font>")
+        }
+      });
+    });
+    $("#in_search").click(function() {
+      var q = $("#in_value").val()
+      if(q){
+        var url =  "/get/interface?work_id={{data.work_id}}&group_id={{data.group_id}}&in_q=" + q
+        window.parent.frames[1].location.href = url
+      }else{
+        $("#in_value").focus()
+      }
+    });
+});
+
+function visit_url(param){
+    var flag = arguments[1] ? arguments[1] : "&o=";
+    url = window.location.href.split(flag)
+    if(url.length > 1){
+      url = url[0] + param;
+    }else{
+      url = url + param;
+    }
+    //window.parent.frames[1].location.href = url
+    window.location.href = url
+}
+
+function get_all_version(id){
+  url = "/data_mgr/get/api_all_version?id=" + id
+  $.get(url,
+    function(ret){
+      if(ret.data){
+        detail = '<table class="table table-striped table-bordered table-hover table-condensed">\
+                    <tr>\
+                      <th>添加时间</th>\
+                      <th>名称</th>\
+                      <th>Url路径</th>\
+                      <th>版本</th>\
+                      <th>添加者</th>\
+                      <th>操作</th>\
+                    </tr>\
+                  </thead>\
+                  <tbody>'
+        var len=ret.data.length;
+        for (i=0; i<len; i++)
+        {
+            detail += '<tr>'+
+                      '<td>'+ ret.data[i]["create"] +'</td>' +
+                      '<td><a href="/show/interface?id=' + ret.data[i]["id"] +'">'+ ret.data[i]["name"] +'</a></td>' +
+                      '<td><a href="/show/interface?id=' + ret.data[i]["id"] +'">'+ ret.data[i]["url_param"] +'</a></td>' +
+                      '<td>'+ ret.data[i]["version"] +'</td>' +
+                      '<td>'+ ret.data[i]["user"] +'</td>' +
+                      '<td><a class="btn btn-xs btn-primary" href="/add/interface?id=' + ret.data[i]["id"] + '">编辑</a></td>' +
+                      '</td></tr>'
+        }
+        $("#show_all_version_main").html(detail)
+      }else{
+        $("#show_all_version_main").html("<font color='red'>获取数据失败</font>")
+      }
+  });
+}
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="pd10">
+<ul class="breadcrumb">
+{% if data.work_id and data.group_id %}
+  <li><a href="/main">主页</a> <span class="divider"></span></li>
+  <li><a href="/get/interface?work_id={{data.work_id}}">{{data.work_name}}</a> <span class="divider"></span></li>
+  <li class="active">{{data.group_name}}</li>
+{% elif data.work_id %}
+  <li><a href="/main">主页</a> <span class="divider"></span></li>
+  <li class="active">{{data.work_name}}</li>
+{% else %}
+  <li><a href="/main">主页</a> <span class="divider"></span></li>
+  <li class="active">接口列表</li>
+{%endif%}
+    <div class="input-group input-group-sm no-pd-mg right " style="width:200px;top:-5px;">
+      <input type="text" class="form-control" placeholder="业务内搜索" id="in_value">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" id="in_search">搜索</button>
+      </span>
+    </div>
+</ul>
+{% if not data.auth.super and not data.auth.admin and not data.auth.write and not data.q%}
+<div class="alert alert-warning">
+<button type="button" class="close" data-dismiss="alert">×</button>
+您没有本业务的写权限，如需添加接口请向
+<a href="/get/write?work_id={{request.GET.work_id}}" role="button" data-toggle="modal">管理员</a>
+申请写权限；如需帮助或有任何建议请联系<a href="mailto:liliurd@meilishuo.com">刘礼</a>。
+</div>
+{%endif%}
+<div class="panel panel-info no-pd-mg">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+    {% if request.GET.q %}
+        搜索接口信息结果：
+    {% else %}
+        接口信息列表
+    {% if data.work_id %}
+        <div class="right">
+        <a href="/get/group?work_id={{request.GET.work_id}}&group_id={{request.GET.group_id}}" class="btn btn-xs btn-primary">查看分组</a>
+        {% if data.auth.super or data.auth.admin or data.auth.write %}
+        <a href="/add/interface?work_id={{request.GET.work_id}}&group_id={{request.GET.group_id}}" class="btn btn-xs btn-success">添加接口</a>
+        <a href="#autoAdd" role="button" class="btn btn-xs btn-info" data-toggle="modal">自动生成接口</a>
+        {% endif %}
+        <a class="btn btn-xs btn-default" href="/get/interface?work_id={{request.GET.work_id}}&group_id={{request.GET.group_id}}" target="_blank">分享</a>
+        </div>
+    {% else %}
+    {% endif %}
+    {% endif %}
+    </h3>
+  </div>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+      <thead>
+        <tr>
+          <th style="width:60px">收藏</th>
+          <th style="width:60px">
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-badge'%}&o=badge{%else%}&o=-badge{%endif%}')">
+            {%if data.o == "-badge"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "badge"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            徽章</a>
+          </th>
+          <th>
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-name'%}&o=name{%else%}&o=-name{%endif%}')">
+            {%if data.o == "-name"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "name"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            接口名称</a>
+          </th>
+          <th>
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-url_param'%}&o=url_param{%else%}&o=-url_param{%endif%}')">
+            {%if data.o == "-url_param"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "url_param"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            Url参数</a>
+          </th>
+          <th style="width:70px">
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-version'%}&o=version{%else%}&o=-version{%endif%}')">
+            {%if data.o == "-version"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "version"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            版本</a>
+          </th>
+          <th style="width:70px">
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-request_type'%}&o=request_type{%else%}&o=-request_type{%endif%}')">
+            {%if data.o == "-request_type"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "request_type"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            方式</a>
+          </th>
+          <th style="width:70px">
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-status'%}&o=status{%else%}&o=-status{%endif%}')">
+            {%if data.o == "-status"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "status"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            发布</a>
+          </th>
+          <th style="width:100px">
+            <a style="cursor: pointer;" onclick="visit_url('{%if data.o == '-user'%}&o=user{%else%}&o=-user{%endif%}')">
+            {%if data.o == "-user"%}
+              <i class="glyphicon glyphicon-chevron-down"></i>
+            {%elif data.o == "user"%}
+              <i class="glyphicon glyphicon-chevron-up"></i>
+            {%else%}
+            {%endif%}
+            创建者</a>
+          </th>
+          <th style="width:60px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for d in data.api.api_list %}
+        {% if data.auth.super or data.auth.admin or data.auth.write or d.is_show %}
+        <tr>
+          <td><a onclick="ajax_get('/data_mgr/save/collection?api_id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+              {%if d.collection%}
+              <i class="glyphicon glyphicon-star" data-toggle="tooltip" data-placement="right" title="取消收藏"></i>
+              {%else%}
+              <i class="glyphicon glyphicon-star-empty" data-toggle="tooltip" data-placement="right" title="收藏接口"></i>
+              {%endif%}
+          </a></td>
+          <td>
+              {%if d.badge == 1%}
+              <a href="/api/ranking"><img src="/static/normal/img/gold.png" data-toggle="tooltip" data-placement="right" title="高频接口"></a>
+              {%else%}
+              <a href="/api/ranking"><img src="/static/normal/img/silver.png" data-toggle="tooltip" data-placement="right" title="普通接口"></a>
+              {%endif%}
+          </td>
+          <td><a href="/show/interface?id={{d.id}}&work_id={{d.work.id}}" target="_blank">{{d.name}}</a></td>
+          <td><a href="/show/interface?id={{d.id}}&work_id={{d.work.id}}">{{d.url_param}}</a></td>
+          <td><a onclick="get_all_version({{d.id}})"  href="#show_all_version" data-toggle="modal">
+                  {{d.version}}
+              </a>
+          </td>
+          <td>{% if d.request_type == 1 %}GET{% else %}POST{% endif %}</td>
+          <td>{% if d.status == 1 %}<font color="green">已发布</font>{% else %}未发布{% endif %}</td>
+          <!--td>{% if d.is_show %}<font color="green">是</font>{% else %}否{% endif %}</td-->
+          <td><a href="mailto:{{d.user}}">{{d.user_name}}</a></td>
+          <td>
+              {% if data.auth.super or data.auth.admin or data.auth.write %}
+              <div class="btn-group">
+            <a class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">相关操作<span class="caret"></span></a>
+            <ul class="dropdown-menu dropdown-menu-right center">
+              <a class="btn btn-xs btn-primary" href="/add/interface?id={{d.id}}&work_id={{d.work.id}}&group_id={{d.group.id}}">编辑</a>
+              <a class="btn btn-xs btn-success" onclick="ajax_get('/data_mgr/copy/api?id={{d.id}}&flag=1')"  href="#Dialog" data-toggle="modal">
+                  复制
+              </a>
+              {% if d.status != 1 %}
+              <a class="btn btn-xs btn-info" onclick="ajax_get('/data_mgr/update/api?status=1&id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+                  发布
+              </a>
+              {% else %}
+              <a class="btn btn-xs btn-warning" onclick="ajax_get('/data_mgr/update/api?status=0&id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+                  下线
+              </a>
+              {%endif%}
+              <a class="btn btn-xs btn-danger" onclick="confirm_option('/data_mgr/delete/api?id={{d.id}}')" href="#Dialog" data-toggle="modal">
+                  删除
+              </a>
+              <li class="divider"></li>
+              <a class="btn btn-xs btn-success" onclick="ajax_get('/data_mgr/copy/api?id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+                  添加新版本
+              </a>
+              <a class="btn btn-xs btn-success" onclick="get_all_version({{d.id}})"  href="#show_all_version" data-toggle="modal">
+                  全部版本
+              </a>
+            </ul>
+            {%else%}
+              <a class="btn btn-xs btn-success" onclick="get_all_version({{d.id}})"  href="#show_all_version" data-toggle="modal">
+                  全部版本
+              </a>
+            {% endif %}
+            </div>
+
+          </td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% if data.api.page %}
+<nav class="left no-pd-mg">
+   <font class="right" style="margin-top:15px;color:#999999;">&nbsp;&nbsp;&nbsp;&nbsp;总页数 / 总接口数：{{data.api.page.page.total}} / {{data.api.page.total}}</font>
+  <ul class="pagination pagination-sm no-pd-mg" style="margin-top:10px;">
+    {% if "start" != data.api.page.flag %}
+      <li>
+      <a style="cursor: pointer;" onclick="visit_url('&page_current=1', '&page_current')" aria-label="Previous">
+        <span aria-hidden="true">首页</span>
+      </a>
+    </li>
+    {%endif%}
+    {% for d in data.api.page.page.list %}
+    {% if d == data.api.page.page.current %}
+    <li class="active"><a>{{d}}</a></li>
+    {% else %}
+    <li><a style="cursor: pointer;" onclick="visit_url('&page_current={{d}}', '&page_current')">{{d}}</a></li>
+    {% endif %}
+    {% endfor %}
+    {% if "end" != data.api.page.flag %}
+      <li>
+      <a style="cursor: pointer;" onclick="visit_url('&page_current={{data.api.page.page.total}}', '&page_current')" aria-label="Previous">
+        <span aria-hidden="true">末页</span>
+      </a>
+    </li>
+    {%endif%}
+  </ul>
+</nav>
+{% endif %}
+
+<!-- 对话框 -->
+<div id="autoAdd" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+    <div class="modal-header">
+    <h4 class="modal-title">URL列表</h4>
+    </div>
+    <div class="modal-body" id="modal-body">
+    <div class="alert alert-warning pd10">
+    暂只支持GET类型URL,批量生成时每一行代表一个接口, <font color="red">生成的接口请再次确认。</font><br/>
+    示例：http://virusdoota.meilishuo.com/order/addr_query?user_id=2825245
+    </div>
+    <textarea class="form-control" type="text" id="autoUrl" placeholder="" style="width:100%;height:320px"></textarea>
+    </div>
+
+    <div class="modal-footer">
+    <div id="modal-footer">
+    <a class="btn btn-primary" id="autoAddSure">确定</a>
+    <a class="btn btn-danger" data-dismiss="modal" aria-hidden="true">取消</a>
+    </div>
+    <a class="btn btn-info" id="autoAddRef" style="display:none">刷新</a>
+    </div>
+    </div>
+    </div>
+</div>
+
+<!-- 显示所有版本对话框 -->
+<div id="show_all_version" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:650px">
+    <div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title">版本列表</h4>
+    </div>
+    <div class="modal-body">
+        <div id="show_all_version_main"></div>
+    </div>
+    </div>
+    </div>
+</div>
+</div>
+{% endblock %}

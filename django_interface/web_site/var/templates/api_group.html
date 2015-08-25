@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block script %}
+{% endblock %}
+{% block main %}
+<ul class="nav nav-tabs">
+  <li class="active"><a href="/get/group?work_id={{request.GET.work_id}}">业务分组详情</a></li>
+  <li><a href="/get/write?work_id={{request.GET.work_id}}">用户权限管理</a></li>
+</ul>
+<div class="pd10">
+{% if data.auth.super or data.auth.admin %}
+<a href="/add/group?work_id={{data.work_id}}" class="btn btn-primary">添加分组</a>
+{% else %}
+<div class="alert alert-warning no-pd-mg">
+<button type="button" class="close" data-dismiss="alert">×</button>
+您不是本业务的管理员，不能够编辑该业务内的分组；如需帮助或有任何建议请联系<a href="mailto:liliurd@meilishuo.com">刘礼</a>。
+</div>
+{% endif %}
+</div>
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+分组列表
+</div>
+<table class="table table-striped table-bordered table-hover table-condensed">
+  <thead>
+    <tr>
+      <th>分组名</th>
+      <th>负责人</th>
+      <th>是否在前台展示</th>
+      <th>描述</th>
+      <th {% if data.auth.super or data.auth.admin%}style="width:180px"{%else%}style="width:80px"{%endif%}>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for d in data.group %}
+    <tr>
+      <td><a href="/get/interface?group_id={{d.id}}&work_id={{d.work_id}}">{{d.name}}</a></td>
+      <td><a href="mailto:{{d.user}}">{{d.user}}</a></td>
+      <td>{% if d.is_show %}<font color="green">是</font>{% else %}否{% endif %}</td>
+      <td>{{d.description}}</td>
+      <td>
+        {% if data.auth.super or data.auth.admin%}
+        <a class="btn btn-primary btn-xs" href="/add/group?id={{d.id}}&work_id={{d.work_id}}">编辑</a>
+        <a class="btn btn-danger btn-xs" onclick="confirm_option('/data_mgr/delete/group?id={{d.id}}')" href="#Dialog" data-toggle="modal">
+            删除
+        </a>
+        <a class="btn btn-success btn-xs" href="/add/interface?work_id={{data.work_id}}&group_id={{d.id}}">添加接口</a>
+        {% else %}
+        <a class="btn btn-info btn-xs" href="/get/interface?work_id={{data.work_id}}&group_id={{d.id}}">查看接口</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

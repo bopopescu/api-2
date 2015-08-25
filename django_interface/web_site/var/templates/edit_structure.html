@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+    $(function(){
+      //应用基本输入参数
+      $("#inputSure").click(function(){
+        var inputName = $("#inputName").val().replace(/"/g,"'")
+        var inputIndex = $("#inputIndex").val().replace(/"/g,"'")
+        var inputType = $("#inputType").val().replace(/"/g,"'")
+        var inputSample = $("#inputSample").val().replace(/"/g,"'")
+        var inputDesc = $("#inputDesc").val().replace(/"/g,"'")
+
+        var json = inputName + "::" + inputType + "::" + inputSample + "::" + inputDesc
+        inputType = $("#inputType").find("option:selected").text();
+        var html = "<tr class='parent'><td>"
+        html += inputName + "</td><td>"
+        html += inputType + "</td><td>"
+        html += inputSample + "</td><td>"
+        html += inputDesc + "</td><td>"
+        html += '<input style="display:none;" class="inputJson" value="' + json + '"/>'
+        html += '<a href="#inputParam" data-toggle="modal" onclick="inputData(this)">编辑</a> | <a onclick=' + "$(this).parents('.parent').remove()" + ">删除</a></td></tr>"
+        if (inputIndex){
+          str = "tr:eq(" + inputIndex + ")"
+          $("#inputTable").find(str).replaceWith(html)
+        }else{
+          $(html).appendTo("#inputTable");
+        }
+      });
+      //保存数据
+      $("#saveStructure").click(function() {
+        ajax_post("/save/structure", GetJsonData(), 1);
+      });
+
+      function GetJsonData() {
+        var base = {
+          "id": $("#id").val(),
+          "name": $("#name").val(),
+          "description": $("#description").val(),
+        }
+        var inputJson = []
+        $(".inputJson").each(function(i, o){
+          inputJson[i] = $(o).val();
+        });
+        var json = {
+          "base": base,
+          "inputJson": inputJson,
+        };
+        return json;
+      }
+      $("#checkName").click(function() {
+        var url = "/data_mgr/check/structure?name=" + $("#name").val()
+        ajax_get(url, 1)
+      });
+    });
+    function cleanInput(){
+      $("#inputIndex").val("")
+      $("#inputName").val("")
+      $("#inputSample").val("")
+      $("#inputDesc").val("")
+    }
+    function inputData(data){
+      var v = $(data).parent().children("input").val()
+      var index = $(data).parent().parent().index()
+      $("#inputIndex").val(index)
+      list = v.split("::")
+      $("#inputName").val(list[0])
+      $("#inputType").val(list[1])
+      $("#inputSample").val(list[2])
+      $("#inputDesc").val(list[3])
+    }
+</script>
+{% endblock %}
+{% block menu_script %}
+$(function(){
+    $("ul#menu li a:eq(2)").parent().addClass("active")
+});
+{% endblock %}
+{% block main %}
+<ul class="breadcrumb">
+  <li><a href="/data/structure">数据结构</a> <span class="divider"></span></li>
+  <li class="active">添加数据结构</li>
+</ul>
+
+<div class="panel panel-info">
+<div class="panel-heading">基本信息</div>
+<div class="panel-body">
+    <div class="form-horizontal" role="form">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right"><s>*</s>名称:</label>
+        <div class="col-xs-9 col-md-9 form-inline">
+        <input style="display:none"  id="id" value="{{data.current.id}}">
+        <input class="form-control" type="text" placeholder="唯一值,重复会覆盖" id="name" value="{{data.current.name}}">
+        <a class="btn btn-info" href="#Dialog" data-toggle="modal" id="checkName">检测重复</a>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+        <textarea  class="form-control" style="height: 130px" id="description" placeholder="详细描述">{{data.current.description}}</textarea>
+        </div>
+    </div>
+    </div>
+</div>
+</div>
+
+<div class="panel panel-info">
+<div class="panel-heading">数据结构详情
+<div class="right">
+    <a href="#inputParam" role="button" class="btn btn-xs btn-info" data-toggle="modal" onclick="cleanInput()">添加参数</a>
+</div>
+</div>
+    <table class="table table-bordered table-striped table-condensed">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>类型</th>
+          <th>示例值</th>
+          <th>描述</th>
+          <th style="width:80px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="inputTable">
+      {% if data.current.detail%}
+      {% for d in data.current.detail %}
+      <tr class='parent'>
+          <td>{{d.name}}</td>
+          <td>
+              {% for s in data.structure%}
+              {% if d.type == s.id %}{{s.name}}{%endif%}
+              {% endfor %}
+          </td>
+          <td>{{d.sample}}</td>
+          <td>{{d.desc}}</td>
+          <td><input style="display:none;" class="inputJson"
+                     value="{{d.name}}::{{d.type}}::{{d.sample}}::{{d.desc}}"/>
+              <a href="#inputParam" data-toggle="modal" onclick="inputData(this)">编辑</a> |
+              <a onclick="$(this).parents('.parent').remove()">删除</a>
+          </td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+      </tbody>
+    </table>
+</div>
+
+<!-- 对话框 -->
+<div id="inputParam" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal-dialog">
+<div class="modal-content">
+    <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title" id="myModalLabel">数据结构参数</h4>
+    </div>
+    <div class="modal-body">
+    <div class="form-horizontal">
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">名称:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="inputName" placeholder="唯一值,重复会覆盖">
+            <input style="display:none"  id="inputIndex">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">类型:</label>
+        <div class="col-xs-5 col-md-5">
+            <select class="form-control" id="inputType">
+            {% for s in data.structure%}
+            <option value="{{s.id}}">{{s.name}}</option>
+            {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">示例:</label>
+        <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="inputSample">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-3 col-md-3 control-label no-padding-right">描述:</label>
+        <div class="col-xs-5 col-md-5">
+            <textarea class="form-control" id="inputDesc" style="height: 130px"></textarea>
+        </div>
+    </div>
+    </div>
+    <div class="modal-footer">
+    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true" id="inputSure">确定</button>
+    <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">取消</button>
+    </div>
+</div>
+</div>
+</div>
+</div>
+<div class="mg10">
+    <a href="#Dialog" role="button" class="btn btn-primary" data-toggle="modal" id="saveStructure">保存数据结构</a>
+</div>
+{% endblock %}

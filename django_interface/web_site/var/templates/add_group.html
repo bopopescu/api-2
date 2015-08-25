@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script type="text/javascript">
+function GetJsonData() {
+    var json = {
+      "id": $("#id").val(),
+      "name": $("#name").val(),
+      "work_id": $("#work_id").val(),
+      "is_show": $("#is_show").val(),
+      "description": $("#description").val(),
+    }
+    return json;
+}
+$(function () {
+    var work_id = {% if data.group.work_id %}"{{data.group.work_id}}"{%else%}"{{data.work_id}}"{%endif%}
+    //保存数据
+    $("#saveGroup").click(function() {
+    ajax_post("/add/group", GetJsonData(), 1);
+    });
+
+    $("#work_id").val(work_id)
+    {% if data.group.is_show != None %}
+    $("#is_show").val("{{data.group.is_show}}")
+    {% endif %}
+});
+</script>
+{% endblock %}
+{% block main %}
+{% if data.auth.super or data.auth.admin %}
+<ul class="breadcrumb">
+  <li><a href="/main">主页</a> <span class="divider"></span></li>
+  <li class="active">添加分组</li>
+</ul>
+{% else %}
+<div class="alert alert-fail">
+<button type="button" class="close" data-dismiss="alert">×</button>
+您不是本业务的管理员，只能查看分组信息！
+</div>
+{% endif %}
+
+<div class="panel panel-info">
+<div class="panel-heading">基本信息</div>
+<div class="panel-body">
+    <div class="form-horizontal" role="form">
+        <input style="display:none" value="{{data.group.id}}" id="id">
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="name"><s>*</s>名称:</label>
+            <div class="col-xs-5 col-md-5">
+            <input class="form-control" type="text" id="name" value="{{data.group.name}}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="is_show"><s>*</s>所属业务:</label>
+            <div class="col-xs-5 col-md-5">
+            <select class="form-control" id="work_id" readonly disabled>
+            {% for d in data.work %}
+            <option value={{d.id}}>{{d.name}}</option>
+            {% endfor %}
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="is_show"><s>*</s>所属业务:</label>
+            <div class="col-xs-5 col-md-5">
+            <select class="form-control" id="is_show">
+            <option value=1>显示</option>
+            <option value=0>不显示</option>
+            </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-3 col-md-3 control-label no-padding-right" for="description">描述:</label>
+            <div class="col-xs-5 col-md-5">
+            <textarea class="form-control"  id="description" style="height: 130px">{{data.group.description}}</textarea>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% if data.auth.super or data.auth.admin %}
+<div class="mg10">
+<a href="#Dialog" role="button" class="btn btn-primary" data-toggle="modal" id="saveGroup">保存</a>
+</div>
+{% endif %}
+{% endblock %}

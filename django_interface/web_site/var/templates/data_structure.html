@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block script %}
+{% endblock %}
+{% block menu_script %}
+$(function(){
+    $("ul#menu li a:eq(2)").parent().addClass("active")
+});
+{% endblock %}
+{% block main %}
+
+<div class="panel panel-info no-pd-mg">
+<div class="panel-heading">
+数据结构列表<a href="/save/structure" class="btn btn-xs btn-info right">添加数据结构</a>
+</div>
+<table class="table table-striped table-bordered table-hover table-condensed">
+  <thead>
+    <tr>
+      <th>名称</th>
+      <th>描述</th>
+      <th>状态</th>
+      <th>创建者</th>
+      <th style="width:100px">操作</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for d in data.structure%}
+    <tr>
+      <td>{{d.name}}</td>
+      <td>{{d.description}}</td>
+      <td>{% if d.status == "1" %}<font color="green">已发布</font>{% else %}未发布{% endif %}</td>
+      <td>{{d.user}}</td>
+      <td>
+        <a class="btn btn-primary btn-xs" href="/save/structure?id={{d.id}}">编辑</a>
+        {% if d.status == "1" %}
+        <a class="btn btn-warning btn-xs" onclick="ajax_get('/data_mgr/update/structure?status=0&id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+          下线
+        </a>
+        {%else%}
+        <a class="btn btn-info btn-xs" onclick="ajax_get('/data_mgr/update/structure?status=1&id={{d.id}}')"  href="#Dialog" data-toggle="modal">
+          发布
+        </a>
+        {%endif%}
+        <!--button onclick="ajax_get('/data_mgr/delete/structure?id={{d.id}}')" href="#Dialog" data-toggle="modal" class="btn btn-danger" disabled>
+          删除
+        </button-->
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
