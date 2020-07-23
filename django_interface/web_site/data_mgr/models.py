@@ -55,7 +55,7 @@ class Api(models.Model):
     modify = models.DateTimeField(auto_now=True, verbose_name=u'修改时间')
     version = models.CharField(db_index=True, max_length=128, blank=True, verbose_name=u'版本')
     mob_version_id = models.IntegerField(db_index=True, default=0, blank=True, null=True, verbose_name=u'客户端版本')
-    slave_api = models.IntegerField(db_index=True, default=0, blank=True, verbose_name=u'隶属api')
+    subordinate_api = models.IntegerField(db_index=True, default=0, blank=True, verbose_name=u'隶属api')
     badge = models.IntegerField(db_index=True, default=0, verbose_name=u'徽章')
     description = models.TextField(blank=True, null=True, verbose_name=u'描述')
     in_param = models.TextField(blank=True, null=True, verbose_name=u'输入参数')

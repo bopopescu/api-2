@@ -500,11 +500,11 @@ def delete_api(id):
     if id:
         api = models.Api.objects.filter(id=id)
         if api:
-            api_slave = models.Api.objects.filter(slave_api=id).order_by("id")
-            if api_slave:
-                slave_id = api_slave[0].id
-                api_slave.update(slave_api=slave_id)
-                models.Api.objects.filter(id=slave_id).update(slave_api=0)
+            api_subordinate = models.Api.objects.filter(subordinate_api=id).order_by("id")
+            if api_subordinate:
+                subordinate_id = api_subordinate[0].id
+                api_subordinate.update(subordinate_api=subordinate_id)
+                models.Api.objects.filter(id=subordinate_id).update(subordinate_api=0)
             api.delete()
     data = {}
     data["code"] = public.CODE_OK
@@ -816,12 +816,12 @@ def copy_api(pk, user="", flag=None):
     if pk:
         api = models.Api.objects.get(id=pk)
         if not flag:
-            slave_api = api.slave_api
-            if not slave_api:
-                slave_api = api.id
-            api.slave_api = slave_api
+            subordinate_api = api.subordinate_api
+            if not subordinate_api:
+                subordinate_api = api.id
+            api.subordinate_api = subordinate_api
         else:
-            api.slave_api = 0
+            api.subordinate_api = 0
         api.id = None
         if user:
             api.user = user
@@ -1071,13 +1071,13 @@ def user_top_ranking():
 
 def get_api_all_version(id):
     api = models.Api.objects.get(id=id)
-    slave_api = api.slave_api
+    subordinate_api = api.subordinate_api
     ret = []
-    if not slave_api:
-        slave_api = api.id
+    if not subordinate_api:
+        subordinate_api = api.id
         source_api = api
     else:
-        source_api = models.Api.objects.get(id=slave_api)
+        source_api = models.Api.objects.get(id=subordinate_api)
     tmp = {}
     tmp["id"] = source_api.id
     tmp["name"] = source_api.name
@@ -1086,7 +1086,7 @@ def get_api_all_version(id):
     tmp["version"] = source_api.version
     tmp["create"] = public.datetime2str(source_api.create)
     ret.append(tmp)
-    api_list = models.Api.objects.filter(slave_api=slave_api)
+    api_list = models.Api.objects.filter(subordinate_api=subordinate_api)
     for a in api_list:
         tmp = {}
         tmp["id"] = a.id
